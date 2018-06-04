@@ -39,9 +39,19 @@ input{
   text-align: center;
 }
 
-a{
+.btn{
   color: rgb(255, 255, 255) !important;
 }
+
+a{
+color: #00B7FF;
+}
+
+a:hover{
+  text-decoration-line: unset;
+  color: #00B7FF; 
+}
+
 .inline{
   display: inline-table;
 }

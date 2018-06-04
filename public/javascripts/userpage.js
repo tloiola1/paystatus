@@ -1,13 +1,18 @@
 // import axios from "axios";
 $(document).ready( function(){
+    
+    $("#page-header").text(localStorage.getItem("email"));
+
     $("#add_transaction").click( function(){
+    
         $("#content").empty();
+    
         $("#userpage_header").text("Add a new Transaction");
 
         $(`<form class="form-group" role="form" id="post_transaction">
 
-            Paid To
-            <input class="form-control" name="paid-to" type="text"  id="paid-to"/>
+            <label for="paid_to">Paid To</label>
+            <input class="form-control" name="paid-to" type="email"  id="paid_to"/>
             
             <label for="amount">Amount</label>
             <input class="form-control" name="amount" type="text"  id="amount"/>
@@ -16,29 +21,41 @@ $(document).ready( function(){
             <input class="form-control" name="category" type="text"  id="category"/>
                         
             <label for="note">Note</label>
-            <input class="form-control" name="note" type="phone" id="note"/>
+            <input class="form-control" name="note" type="text" id="note"/>
+
+            <label for="shared_with">Share With</label>
+            <input class="form-control" name="shared_with" type="email" id="shared_with"/>
             
-            <button class="btn btn-primary add-transaction" onClick="post_transaction()">Submit</buttom>
+            <div class="btn btn-primary" onClick="post_transaction()">Submit</div>
 
         </form>`).appendTo("#content");
 });
 
     $("#all_transactions").click( function(){
-        console.log("All Transactions");
+        all_transactions();
     });
 });
 
 function all_transactions(){
-    console.log("All Transactions");
 
-    axios.get("/get_all_transactions", {
-        params: {
-            foreignkey: 1
-        }
-    })
+    $("#content").empty();
+    $("#userpage_header").text("Your Transactions");
+        
+    const email = localStorage.getItem("email");
+
+    axios.get("/get_all_transactions/"+ email)
+
     .then( function(response){
-        console.log("All Trans Response");
-        console.log(response);
+
+        response.data.forEach(response => {
+            $(`<p>Paid to: ${response.paid_to}</p>
+            <p>Amount: $${response.amount}</p>
+            <p>From: ${response.id}</p>
+            <p>Category: ${response.category}</p>
+            <p>Processed: ${new Date(response.createdAt).toDateString()} at ${new Date(response.createdAt).toLocaleTimeString()}</p>
+            <p>Note: ${response.note}</p>`).appendTo("#content");
+        });
+
     }).catch(function(err){
         console.log(err);
     });
@@ -47,25 +64,37 @@ function all_transactions(){
 
 function post_transaction(){
 
-    console.log("Add Transaction");
+    console.log("Posting Transaction");
 
-    const paidTo = $("#paidTo").val().trim();
-    const amount = $("#amount").val().trim();
-    const category = $("#category").val().trim();
-    const note = $("#note").val().trim();
+    paid_to = $("#paid_to").val().trim();
+    amount = $("#amount").val().trim();
+    category = $("#category").val().trim();
+    note = $("#note").val().trim();
+    shared_with = $("#shared_with").val().trim();
+    user_email = localStorage.getItem("email");
 
-    // axios.post("/post_transaction", {
-    //     paidTo,
-    //     amount,
-    //     category,
-    //     note
-    // })
-    // .then(function (response) {
-    //     console.log(response);
-    //     res.innerHTML = response.data[0].name;
-    // })
-    // .catch(function (error) {
-    //     res.innerHTML = error;
-    // });
+    const Content = {
+        paid_to,
+        amount,
+        category,
+        note,
+        shared_with,
+        user_email
+    };
+    console.log(Content);
+
+    $.ajax({
+        url: "/post_transaction",
+        method: "POST",
+        data: Content
+    })
+    .done(function (response) {
+        const clear_form = document.getElementById("post_transaction");
+        $("#content").empty();
+        $("#userpage_header").text("You have Submited a Transaction!\nClick on Add Transaction for more transactions to be added.");
+        clear_form.reset();
+    });
 
 }
+
+console.log(localStorage.getItem("email"));
